@@ -1,2 +1,2 @@
-1.0b
+1.0
     Conduit rank & Item level increase/decrease if conduit learned

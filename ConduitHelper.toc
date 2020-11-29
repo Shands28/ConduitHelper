@@ -2,7 +2,7 @@
 ## Title: |cff00FF96ConduitHelper|r
 ## Notes: See useful information about conduits in their tooltips.
 ## Author: Sukari-Zul'jin (EU)
-## Version: 1.0 beta
+## Version: 1.0
 
 embeds.xml
 
