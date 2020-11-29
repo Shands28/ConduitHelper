@@ -1,2 +1,4 @@
+1.5
+    Added conduit rank & iLvl difference to World Quest tooltip
 1.0
     Conduit rank & Item level increase/decrease if conduit learned

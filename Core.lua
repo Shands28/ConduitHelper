@@ -2,17 +2,19 @@ ConduitHelper = LibStub("AceAddon-3.0"):NewAddon("ConduitHelper", "AceHook-3.0")
 
 local conduitsRanks = {}
 local conduits = {}
+local conduitNameLast
+local conduitType
+local conduit
 
 function getConduitType(name)
-    for k, v in pairs(conduits) do
-        if v.name == name then
-            local conduitData = C_Soulbinds.GetConduitCollectionData(v.id)
-            if not conduitData then
-                return
-            end
-            return conduitData.conduitType
-        end
+    if not conduits[name] then
+        return
     end
+    local conduitData = C_Soulbinds.GetConduitCollectionData(conduits[name].id)
+    if not conduitData then
+        return
+    end
+    return conduitData.conduitType
 end
 
 function isCounduitKnown(link, type)
@@ -30,12 +32,16 @@ function tooltipCheck(tooltip)
     if C_Soulbinds.IsItemConduitByItemInfo(link) then
         local itemName, _, _, itemLevel = GetItemInfo(link)
         tooltip:AddLine("\nRank: " .. conduitsRanks[itemLevel], 0, .75, 1)
-        local conduitType = getConduitType(itemName)
+        if conduitNameLast ~= itemName then
+            conduitType = getConduitType(itemName)
+        end
         if not conduitType then
             tooltip:AddLine("Conduit not learned", 0, .35, .75)
             return
         end
-        local conduit = isCounduitKnown(link, conduitType)
+        if conduitNameLast ~= itemName then
+            conduit = isCounduitKnown(link, conduitType)
+        end
         if not conduit then
             return
         end
@@ -52,7 +58,7 @@ function getConduits()
         local x = C_Soulbinds.GetConduitSpellID(i, 1)
         if x ~= 0 then
             local name = GetSpellInfo(x)
-            conduits[i] = {name = name, id = i, spellid = x}
+            conduits[name] = {name = name, id = i, spellid = x}
         end
     end
 end
@@ -69,4 +75,39 @@ function ConduitHelper:OnInitialize()
     getConduits()
     getConduitRanks()
     GameTooltip:HookScript("OnTooltipSetItem", tooltipCheck)
+    ConduitHelper:SecureHook("TaskPOI_OnEnter")
+end
+
+function ConduitHelper:TaskPOI_OnEnter(self)
+    if self and self.questID then
+        local itemName, _, _, _, _, itemID, itemLevel = GetQuestLogRewardInfo(1, self.questID)
+        if not itemLevel then
+            return
+        end
+        GameTooltip:AddLine("\nRank: " .. conduitsRanks[itemLevel], 0, .75, 1)
+        if conduitNameLast ~= itemName then
+            conduitType = getConduitType(itemName)
+        end
+        if not conduitType then
+            GameTooltip:AddLine("Conduit not learned", 0, .35, .75)
+            return
+        end
+        local link = select(2, GetItemInfo(itemID))
+        if not link then
+            return
+        end
+        if conduitNameLast ~= itemName then
+            conduit = isCounduitKnown(link, conduitType)
+        end
+        if not conduit then
+            return
+        end
+        if conduit.conduitItemLevel < itemLevel then
+            GameTooltip:AddLine("+" .. (itemLevel - conduit.conduitItemLevel) .. " iLvl", 0, 1, 1)
+        else
+            GameTooltip:AddLine("-" .. (itemLevel - conduit.conduitItemLevel) .. " iLvl", 1, 0, 0)
+        end
+        conduitNameLast = itemName
+        GameTooltip:Show()
+    end
 end
