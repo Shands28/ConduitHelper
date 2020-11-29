@@ -1,2 +1,2 @@
 0.1
-    WIP
+    Conduit rank & Item level increase/decrase if conduit learned
