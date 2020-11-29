@@ -1,3 +1,5 @@
+1.5.1
+    Minor bug fix
 1.5
     Added conduit rank & iLvl difference to World Quest tooltip
 1.0

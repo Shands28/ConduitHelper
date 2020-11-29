@@ -81,6 +81,8 @@ end
 function ConduitHelper:TaskPOI_OnEnter(self)
     if self and self.questID then
         local itemName, _, _, _, _, itemID, itemLevel = GetQuestLogRewardInfo(1, self.questID)
+        local link = select(2, GetItemInfo(itemID))
+        if not C_Soulbinds.IsItemConduitByItemInfo(link) then return end
         if not itemLevel then
             return
         end
@@ -92,7 +94,7 @@ function ConduitHelper:TaskPOI_OnEnter(self)
             GameTooltip:AddLine("Conduit not learned", 0, .35, .75)
             return
         end
-        local link = select(2, GetItemInfo(itemID))
+        
         if not link then
             return
         end
