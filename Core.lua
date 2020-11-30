@@ -80,6 +80,9 @@ end
 function ConduitHelper:TaskPOI_OnEnter(self)
     if self and self.questID then
         local itemName, _, _, _, _, itemID, itemLevel = GetQuestLogRewardInfo(1, self.questID)
+        if not itemName or not itemID or not itemLevel then
+            return
+        end
         local link = select(2, GetItemInfo(itemID))
         if not link then
             return
