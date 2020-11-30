@@ -2,17 +2,16 @@ ConduitHelper = LibStub("AceAddon-3.0"):NewAddon("ConduitHelper", "AceHook-3.0")
 
 local conduitsRanks = {}
 local conduits = {}
-local conduitNameLast
 local conduitType
 local conduit
 
 function getConduitType(name)
     if not conduits[name] then
-        return
+        return nil
     end
     local conduitData = C_Soulbinds.GetConduitCollectionData(conduits[name].id)
     if not conduitData then
-        return
+        return nil
     end
     return conduitData.conduitType
 end
@@ -32,14 +31,13 @@ function tooltipCheck(tooltip)
     if C_Soulbinds.IsItemConduitByItemInfo(link) then
         local itemName, _, _, itemLevel = GetItemInfo(link)
         tooltip:AddLine("\nRank: " .. conduitsRanks[itemLevel], 0, .75, 1)
-        if conduitNameLast ~= itemName then
-            conduitType = getConduitType(itemName)
-        end
+        conduitType = getConduitType(itemName)
         if not conduitType then
+            conduitNameLast = itemName
             tooltip:AddLine("Conduit not learned", 0, .35, .75)
             return
         end
-        if conduitNameLast ~= itemName then
+        if GameTooltip.conduitNameLast ~= itemName then
             conduit = isCounduitKnown(link, conduitType)
         end
         if not conduit then
@@ -47,9 +45,10 @@ function tooltipCheck(tooltip)
         end
         if conduit.conduitItemLevel < itemLevel then
             tooltip:AddLine("+" .. (itemLevel - conduit.conduitItemLevel) .. " iLvl", 0, 1, 1)
-        else
+        elseif conduit.conduitItemLevel > itemLevel then
             tooltip:AddLine("-" .. (itemLevel - conduit.conduitItemLevel) .. " iLvl", 1, 0, 0)
         end
+        GameTooltip.conduitNameLast = itemName
     end
 end
 
@@ -82,34 +81,41 @@ function ConduitHelper:TaskPOI_OnEnter(self)
     if self and self.questID then
         local itemName, _, _, _, _, itemID, itemLevel = GetQuestLogRewardInfo(1, self.questID)
         local link = select(2, GetItemInfo(itemID))
-        if not C_Soulbinds.IsItemConduitByItemInfo(link) then return end
-        if not itemLevel then
-            return
-        end
-        GameTooltip:AddLine("\nRank: " .. conduitsRanks[itemLevel], 0, .75, 1)
-        if conduitNameLast ~= itemName then
-            conduitType = getConduitType(itemName)
-        end
-        if not conduitType then
-            GameTooltip:AddLine("Conduit not learned", 0, .35, .75)
-            return
-        end
-        
         if not link then
             return
         end
-        if conduitNameLast ~= itemName then
-            conduit = isCounduitKnown(link, conduitType)
+        if not C_Soulbinds.IsItemConduitByItemInfo(link) then
+            return
         end
-        if not conduit then
+        if not itemLevel then
+            return
+        end
+        conduitType = getConduitType(itemName)
+        GameTooltip:AddLine("Rank: " .. conduitsRanks[itemLevel], 0, .75, 1)
+        if GameTooltip.conduitNameLast ~= itemName then
+            if not conduitType then
+                GameTooltip.conduitNameLast = itemName
+                GameTooltip:AddLine("Conduit not learned", 0, .35, .75)
+                GameTooltip:Show()
+                return
+            end
+            conduit = isCounduitKnown(link, conduitType) or conduit
+            if not conduit then
+                return
+            end
+            GameTooltip.conduitNameLast = itemName
+        end
+        if not conduitType then
+            GameTooltip.conduitNameLast = itemName
+            GameTooltip:AddLine("Conduit not learned", 0, .35, .75)
+            GameTooltip:Show()
             return
         end
         if conduit.conduitItemLevel < itemLevel then
             GameTooltip:AddLine("+" .. (itemLevel - conduit.conduitItemLevel) .. " iLvl", 0, 1, 1)
-        else
+        elseif conduit.conduitItemLevel > itemLevel then
             GameTooltip:AddLine("-" .. (itemLevel - conduit.conduitItemLevel) .. " iLvl", 1, 0, 0)
         end
-        conduitNameLast = itemName
         GameTooltip:Show()
     end
 end
