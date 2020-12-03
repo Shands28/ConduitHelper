@@ -28,9 +28,12 @@ end
 
 function tooltipCheck(tooltip)
     local link = select(2, tooltip:GetItem())
-    if C_Soulbinds.IsItemConduitByItemInfo(link) then
+    if link and C_Soulbinds.IsItemConduitByItemInfo(link) then
         local itemName, _, _, itemLevel = GetItemInfo(link)
-        tooltip:AddLine("\nRank: " .. conduitsRanks[itemLevel], 0, .75, 1)
+        if not itemName or not itemLevel then
+            return
+        end
+        tooltip:AddLine("Rank: " .. conduitsRanks[itemLevel], 0, .75, 1)
         conduitType = getConduitType(itemName)
         if not conduitType then
             conduitNameLast = itemName
